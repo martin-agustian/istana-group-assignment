@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 
 import { Box, Typography, Button, Stack } from "@mui/material";
 
-import Link from "next/link";
 import InputText from "@/components/form/InputText";
 
 import { FieldErrors, UseFormHandleSubmit, UseFormRegister } from "react-hook-form";

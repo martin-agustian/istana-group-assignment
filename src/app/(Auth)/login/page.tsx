@@ -1,7 +1,7 @@
 "use client";
 import Swal from "sweetalert2";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { useForm } from "react-hook-form";
@@ -16,11 +16,10 @@ import PageContainer from "@/app/(Dashboard)/components/container/PageContainer"
 import Logo from "@/components/Logo";
 import AuthLogin from "./components/AuthLogin";
 
-// import { showError } from "@/commons/error";
+import { showError } from "@/commons/error";
 
 const Login = () => {
 	const searchParams = useSearchParams();
-	const errorMessage = searchParams.get("error") || "";
 	const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
 	const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
@@ -30,19 +29,13 @@ const Login = () => {
 		handleSubmit: onSubmitLogin,
 		formState: { errors: loginErrors },
 	} = useForm<LoginSchema>({
+		defaultValues: {
+			email: "budi@mailinator.com",
+			password: "password"
+		},
 		resolver: zodResolver(loginSchema),
 		mode: "onChange",
 	});
-
-	useEffect(() => {
-		if (errorMessage) {
-			Swal.fire({
-				title: "Error!",
-				html: errorMessage,
-				icon: "error",
-			});
-		}
-	}, [errorMessage])
 
 	const handleSubmit = async (data: LoginSchema) => {
 		try {
@@ -72,7 +65,7 @@ const Login = () => {
 		} 
 		catch (error) {
 			setLoadingSubmit(false);
-			// showError(error);
+			showError(error);
 		}
 	};
 
