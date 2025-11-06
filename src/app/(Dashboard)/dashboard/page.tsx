@@ -1,5 +1,6 @@
 "use client";
 // import dayjs from "dayjs";
+import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
@@ -15,24 +16,28 @@ import TableRowData from "@/components/table/TableRowData";
 import StatusChip from "@/components/chip/StatusChip";
 // import DashboardCardTitleNode, { FilterSchema } from "./components/DashboardCardTitleNode";
 
-import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from "@mui/material";
 
 // import { CaseModel } from "@/types/model/Case";
 // import { getCaseCategoryLabel } from "@/commons/helper";
 import { showError } from "@/commons/error";
 import { ProductModel } from "@/types/model/Product";
-import dayjs from "dayjs";
+import InputNumber from "@/components/form/InputNumber";
 // import { UserRole } from "@/commons/type";
 // import { UserRoleEnum } from "@/commons/enum";
 
 const Dashboard = () => {
   const { data: session } = useSession();
-  // const userRole = session?.user.role as UserRole;
 
 	const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTotal, setProductTotal] = useState<number>(0);
 
+  const [productSelected, setProductSelected] = useState<ProductModel>();
+
+  const [orderOpen, setOrderOpen] = useState<boolean>(false);
+
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
   const [openFilter, setOpenFilter] = useState<boolean>(false);
 
@@ -139,7 +144,7 @@ const Dashboard = () => {
 					<Table>
 						<TableHead>
 							<TableRow>
-								<TableCell rowSpan={2}>Title</TableCell>
+								<TableCell rowSpan={2}>Name</TableCell>
 								<TableCell>Price</TableCell>
 								<TableCell>Stock</TableCell>
 								<TableCell>Created</TableCell>
@@ -155,7 +160,10 @@ const Dashboard = () => {
                   products.map((p) => (
                     <TableRowData 
                       key={p.id} 
-                      onClick={() => {router.push(`/buy/${p.id}`)}}
+                      onClick={() => {
+                        setProductSelected(p);
+                        setOrderOpen(true);
+                      }}
                     >
                       <TableCell sx={{ textTransform: "capitalize" }}>
                         {p.name}
@@ -187,6 +195,95 @@ const Dashboard = () => {
           />
 				</TableContainer>
 			</DashboardCard>
+
+      <Dialog fullWidth maxWidth="xs" open={orderOpen} onClose={() => setOrderOpen(false)}>
+        <DialogTitle>
+          {productSelected?.name}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ marginTop: 1, marginBottom: 2 }}>
+            <Stack
+              sx={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Box>
+                <InputNumber id="email" fullWidth variant="outlined" size="small" placeholder="Enter Quantity to Buy" />
+                
+                {/* {errors?.email?.message && (
+                  <Typography variant="caption" color="error" sx={{ marginTop: "5px" }}>
+                    {errors.email.message}
+                  </Typography>
+                )} */}
+              </Box>
+
+              <Stack
+                sx={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 0.5
+                }}
+              >
+                <Typography
+                  htmlFor="email"
+                  component="label"
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600 }}
+                >
+                  Stock: 
+                </Typography>
+                
+                <Typography>
+                  {productSelected?.stock}
+                </Typography>            
+              </Stack>
+            </Stack>
+          </Box>
+
+          <Box sx={{ marginBottom: 2 }}>
+            <Stack
+              sx={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}
+            >              
+              <Typography
+                htmlFor="email"
+                component="label"
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 600,
+                  marginBottom: "5px",
+                }}
+              >
+                Subtotal
+              </Typography>
+              
+              <Typography>
+                {productSelected?.price}
+              </Typography>
+            </Stack>
+          </Box>
+
+          <Button
+            fullWidth
+            type="submit"
+            color="primary"
+            variant="contained"
+            size="medium"
+            loading={loadingSubmit}
+            sx={{
+              fontWeight: "bold",
+              textTransform: "uppercase"
+            }}
+          >
+            Add to Cart
+          </Button>
+        </DialogContent>
+      </Dialog>
 		</PageContainer>
 	);
 };
