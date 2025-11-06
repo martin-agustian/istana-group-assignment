@@ -13,15 +13,13 @@ import PageContainer from "@/app/(Dashboard)/components/container/PageContainer"
 import DashboardCard from "@/app/(Dashboard)/components/card/DashboardCard";
 import TableState from "@/components/table/TableState";
 import TableRowData from "@/components/table/TableRowData";
-import StatusChip from "@/components/chip/StatusChip";
 // import DashboardCardTitleNode, { FilterSchema } from "./components/DashboardCardTitleNode";
 
 import { Box, Button, Dialog, DialogContent, DialogTitle, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from "@mui/material";
 
-// import { CaseModel } from "@/types/model/Case";
+import { ProductModel } from "@/types/model/Product";
 // import { getCaseCategoryLabel } from "@/commons/helper";
 import { showError } from "@/commons/error";
-import { ProductModel } from "@/types/model/Product";
 import InputNumber from "@/components/form/InputNumber";
 // import { UserRole } from "@/commons/type";
 // import { UserRoleEnum } from "@/commons/enum";
@@ -33,8 +31,10 @@ const Dashboard = () => {
   const [productTotal, setProductTotal] = useState<number>(0);
 
   const [productSelected, setProductSelected] = useState<ProductModel>();
-
+  
   const [orderOpen, setOrderOpen] = useState<boolean>(false);
+  const [orderQuantity, setOrderQuantity] = useState<number | null>(1);
+  const [orderSubtotal, setOrderSubtotal] = useState<number>(0);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
@@ -96,7 +96,14 @@ const Dashboard = () => {
 	}, [page]);
   // }, [filter, page]);
 
-   const handleChangePage = (_: MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+  useEffect(() => {
+    if (orderOpen && productSelected) {
+      const qty = (!orderQuantity || orderQuantity < 1 ? 1 : orderQuantity); 
+      setOrderSubtotal(productSelected.price * qty);
+    }
+  }, [orderOpen, orderQuantity]);
+
+  const handleChangePage = (_: MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
   };
 
@@ -110,6 +117,34 @@ const Dashboard = () => {
   //   setFilter(data);
   //   setPage(0);
   // }
+
+  const handleAddToCart = async () => {
+    setLoadingSubmit(true); 
+
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const stock = productSelected?.stock ?? 0;
+
+    const existingItem = cart.find((item: any) => item.id === productSelected?.id);
+    if (existingItem) {
+      existingItem.quantity += orderQuantity;
+      if (existingItem.quantity > stock) existingItem.quantity = orderQuantity;
+    } else {
+      cart.push({ ...productSelected, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    setOrderOpen(false);
+    setLoadingSubmit(false); 
+
+    await Swal.fire({
+      timer: 3000,
+      title: "Success!",
+      text: "Success add to cart",
+      icon: "success",
+      showConfirmButton: false,
+    });
+  };
 
 	return (
 		<PageContainer 
@@ -162,6 +197,7 @@ const Dashboard = () => {
                       key={p.id} 
                       onClick={() => {
                         setProductSelected(p);
+                        setOrderSubtotal(p.price);
                         setOrderOpen(true);
                       }}
                     >
@@ -202,21 +238,24 @@ const Dashboard = () => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ marginTop: 1, marginBottom: 2 }}>
-            <Stack
-              sx={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
+            <Stack sx={{ flexDirection: "row", alignItems: "center", gap: 1 }}>
               <Box>
-                <InputNumber id="email" fullWidth variant="outlined" size="small" placeholder="Enter Quantity to Buy" />
-                
-                {/* {errors?.email?.message && (
-                  <Typography variant="caption" color="error" sx={{ marginTop: "5px" }}>
-                    {errors.email.message}
-                  </Typography>
-                )} */}
+                <InputNumber 
+                  id="quantity" fullWidth 
+                  variant="outlined" size="small" 
+                  placeholder="Enter Quantity to Buy" 
+                  value={orderQuantity ?? ""}
+                  onChange={(el) => {
+                    if (el.target.value) {
+                      const qty = parseInt(el.target.value);
+                      const stck = productSelected?.stock ?? 1;
+                      setOrderQuantity(qty > stck ? stck : qty);
+                    }
+                    else {
+                      setOrderQuantity(null);
+                    }
+                  }} 
+                />
               </Box>
 
               <Stack
@@ -263,7 +302,7 @@ const Dashboard = () => {
               </Typography>
               
               <Typography>
-                {productSelected?.price}
+                {orderSubtotal}
               </Typography>
             </Stack>
           </Box>
@@ -279,6 +318,8 @@ const Dashboard = () => {
               fontWeight: "bold",
               textTransform: "uppercase"
             }}
+            onClick={handleAddToCart}
+            disabled={!orderQuantity}
           >
             Add to Cart
           </Button>
