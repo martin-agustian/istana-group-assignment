@@ -50,7 +50,7 @@ const SidebarItems = () => {
 			<SidebarMUI width={"100%"} showProfile={false} themeColor={"#5D87FF"} themeSecondaryColor={"#49beff"}>
 				<Box p={3}>
 					<Link href="/" style={{ textDecoration: "none" }}>
-						<Logo sxText={{ display: "inline" }} />
+						<Logo style={{ margin: "0 auto" }} />
 					</Link>
 				</Box>
 

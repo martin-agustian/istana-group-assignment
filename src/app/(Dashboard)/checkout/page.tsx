@@ -1,35 +1,21 @@
 "use client";
-// import dayjs from "dayjs";
-import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
-import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 
-import Link from "next/link";
 import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
 import DashboardCard from "@/app/(Dashboard)/components/card/DashboardCard";
 import TableState from "@/components/table/TableState";
 import TableRowData from "@/components/table/TableRowData";
-// import DashboardCardTitleNode, { FilterSchema } from "./components/DashboardCardTitleNode";
 
-import { Box, Button, Dialog, DialogContent, DialogTitle, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import InputNumber from "@/components/form/InputNumber";
 
 import { ProductModel } from "@/types/model/Product";
-// import { getCaseCategoryLabel } from "@/commons/helper";
+import { AddOrderBody } from "@/types/request/Order";
 import { showError } from "@/commons/error";
-import InputNumber from "@/components/form/InputNumber";
-// import { UserRole } from "@/commons/type";
-// import { UserRoleEnum } from "@/commons/enum";
 
-const Dashboard = () => {
-  const { data: session } = useSession();
-
-  const [products, setProducts] = useState<ProductModel[]>([]);
-  const [productTotal, setProductTotal] = useState<number>(0);
-
+const Checkout = () => {
   const [productSelected, setProductSelected] = useState<ProductModel>();
   
   const [orderOpen, setOrderOpen] = useState<boolean>(false);
@@ -39,67 +25,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
-  const [openFilter, setOpenFilter] = useState<boolean>(false);
-
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
-  // const [filter, setFilter] = useState<FilterSchema>();
-
   const [carts, setCarts] = useState<any[]>([]);
-  
-  const router = useRouter();
-
-  // const {
-  //   watch: watchFilter,
-  //   getValues: getValueFilter,
-  //   setValue: setValueFilter,
-  //   control: controlFilter,
-  //   register: registerFilter,
-  //   handleSubmit: onSubmitFilter,
-  // } = useForm<FilterSchema>({
-  //   defaultValues: {
-  //     title: "",
-  //     category: "",
-  //     status: [],
-  //     sortBy: "",
-  //   },
-  // });
-
-  const fetchProduct = async () => {
-    const localCarts = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCarts(localCarts);
-
-    // try {
-    //   setLoading(true);
-
-    //   const query = new URLSearchParams({
-    //     page: (page + 1).toString(),
-    //     pageSize: rowsPerPage.toString(),
-    //   });
-  
-    //   const response = await fetch(`/api/product?${query.toString()}`);
-    //   const data = await response.json();
-
-    //   if (response.ok) {
-    //     setProducts(data.products || []);
-    //     setProductTotal(data.total);
-    //   }
-    //   else {
-    //     throw data.error;
-    //   }
-
-    //   setLoading(false);
-    // }
-    // catch (error) {
-    //   setLoading(false);
-    //   showError(error);
-    // }
-  };
 
   useEffect(() => {
-    fetchProduct();
-  }, [page]);
-  // }, [filter, page]);
+    const localCarts = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCarts(localCarts);
+  }, []);
 
   useEffect(() => {
     if (orderOpen && productSelected) {
@@ -107,21 +38,6 @@ const Dashboard = () => {
       setOrderSubtotal(productSelected.price * qty);
     }
   }, [orderOpen, orderQuantity]);
-
-  const handleChangePage = (_: MouseEvent<HTMLButtonElement> | null, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  // const handleSubmitFilter = (data: FilterSchema) => {
-  //   setOpenFilter(false);
-  //   setFilter(data);
-  //   setPage(0);
-  // }
 
   const handleAddToCart = async () => {
     setLoadingSubmit(true); 
@@ -151,25 +67,52 @@ const Dashboard = () => {
     });
   };
 
+  const handleCheckout = async () => {
+    try {
+			setLoadingSubmit(true);
+
+			const body: AddOrderBody = {
+        items: carts.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+      };
+
+			const response = await fetch(`/api/order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+			const responseData = await response.json();
+
+      if (response.ok) {
+        localStorage.removeItem("cart");
+        setCarts([]);
+
+				await Swal.fire({
+					title: "Success!",
+					icon: "success",
+					text: "Success checkout all items",
+				});
+			} 
+			else throw responseData.error;
+
+			setLoadingSubmit(false);
+		} catch (error) {
+			setLoadingSubmit(false);
+			showError(error);
+		}
+  };
+
   return (
     <PageContainer 
-      title={"Checkout"} 
-      description={"This is checkout page"}
+      title={"Shopping Cart"} 
+      description={"This is shopping cart page"}
     >
       <DashboardCard
-        title="Checkout" 
-        // titleNode={
-        //   <DashboardCardTitleNode 
-        //     title={"All Product"}
-        //     openFilter={openFilter}
-        //     setOpenFilter={setOpenFilter}
-        //     handleCloseFilter={() => setOpenFilter(false)}
-        //     registerFilter={registerFilter}
-        //     controlFilter={controlFilter}
-        //     onSubmitFilter={onSubmitFilter}
-        //     handleSubmitFilter={handleSubmitFilter}
-        //   />
-        // }
+        title="Shopping Cart"
       >
         <TableContainer component={Paper} elevation={9}>
           <Table>
@@ -216,6 +159,23 @@ const Dashboard = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        
+        <Box sx={{ display: "flex", justifyContent: "end", marginTop: 3 }}>
+          <Button
+            type="submit"
+            color="primary"
+            variant="contained"
+            size="medium"
+            loading={loadingSubmit}
+            sx={{
+              fontWeight: "bold",
+            }}
+            onClick={handleCheckout}
+            disabled={loadingSubmit || carts.length < 1}
+          >
+            Checkout Items
+          </Button>
+        </Box>
       </DashboardCard>
 
       <Dialog fullWidth maxWidth="xs" open={orderOpen} onClose={() => setOrderOpen(false)}>
@@ -315,4 +275,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Checkout;
