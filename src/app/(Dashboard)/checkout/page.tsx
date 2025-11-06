@@ -27,7 +27,7 @@ import InputNumber from "@/components/form/InputNumber";
 const Dashboard = () => {
   const { data: session } = useSession();
 
-	const [products, setProducts] = useState<ProductModel[]>([]);
+  const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTotal, setProductTotal] = useState<number>(0);
 
   const [productSelected, setProductSelected] = useState<ProductModel>();
@@ -36,7 +36,7 @@ const Dashboard = () => {
   const [orderQuantity, setOrderQuantity] = useState<number | null>(1);
   const [orderSubtotal, setOrderSubtotal] = useState<number>(0);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
   const [openFilter, setOpenFilter] = useState<boolean>(false);
@@ -44,6 +44,8 @@ const Dashboard = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   // const [filter, setFilter] = useState<FilterSchema>();
+
+  const [carts, setCarts] = useState<any[]>([]);
   
   const router = useRouter();
 
@@ -64,36 +66,39 @@ const Dashboard = () => {
   // });
 
   const fetchProduct = async () => {
-    try {
-      setLoading(true);
+    const localCarts = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCarts(localCarts);
 
-      const query = new URLSearchParams({
-        page: (page + 1).toString(),
-        pageSize: rowsPerPage.toString(),
-      });
+    // try {
+    //   setLoading(true);
+
+    //   const query = new URLSearchParams({
+    //     page: (page + 1).toString(),
+    //     pageSize: rowsPerPage.toString(),
+    //   });
   
-      const response = await fetch(`/api/product?${query.toString()}`);
-      const data = await response.json();
+    //   const response = await fetch(`/api/product?${query.toString()}`);
+    //   const data = await response.json();
 
-      if (response.ok) {
-        setProducts(data.products || []);
-        setProductTotal(data.total);
-      }
-      else {
-        throw data.error;
-      }
+    //   if (response.ok) {
+    //     setProducts(data.products || []);
+    //     setProductTotal(data.total);
+    //   }
+    //   else {
+    //     throw data.error;
+    //   }
 
-      setLoading(false);
-    }
-    catch (error) {
-      setLoading(false);
-      showError(error);
-    }
+    //   setLoading(false);
+    // }
+    // catch (error) {
+    //   setLoading(false);
+    //   showError(error);
+    // }
   };
 
-	useEffect(() => {
-		fetchProduct();
-	}, [page]);
+  useEffect(() => {
+    fetchProduct();
+  }, [page]);
   // }, [filter, page]);
 
   useEffect(() => {
@@ -146,13 +151,13 @@ const Dashboard = () => {
     });
   };
 
-	return (
-		<PageContainer 
-      title={"All Product"} 
-      description={"This is all product page"}
+  return (
+    <PageContainer 
+      title={"Checkout"} 
+      description={"This is checkout page"}
     >
-			<DashboardCard
-        title="All Product" 
+      <DashboardCard
+        title="Checkout" 
         // titleNode={
         //   <DashboardCardTitleNode 
         //     title={"All Product"}
@@ -166,62 +171,52 @@ const Dashboard = () => {
         //   />
         // }
       >
-				<TableContainer component={Paper} elevation={9}>
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableCell rowSpan={2}>Name</TableCell>
-								<TableCell>Price</TableCell>
-								<TableCell>Stock</TableCell>
-								<TableCell>Created</TableCell>
-							</TableRow>
-						</TableHead>
+        <TableContainer component={Paper} elevation={9}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell rowSpan={2}>Name</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Quantity</TableCell>
+                <TableCell>Subtotal</TableCell>
+              </TableRow>
+            </TableHead>
             <TableBody>
               {loading ? (
                 <TableState colSpan={5}>Loading...</TableState>
               ) : (
-                products.length === 0 ? (
+                carts.length === 0 ? (
                   <TableState colSpan={5}>Data not found</TableState>
                 ) : (
-                  products.map((p) => (
+                  carts.map((cart: any) => (
                     <TableRowData 
-                      key={p.id} 
+                      key={cart.id} 
                       onClick={() => {
-                        setProductSelected(p);
-                        setOrderSubtotal(p.price);
+                        setProductSelected(cart);
+                        setOrderSubtotal(cart.price);
                         setOrderOpen(true);
                       }}
                     >
                       <TableCell sx={{ textTransform: "capitalize" }}>
-                        {p.name}
+                        {cart.name}
                       </TableCell>
                       <TableCell>
-                        {p.price}
+                        {cart.price}
                       </TableCell>
                       <TableCell>
-                        {p.stock}
+                        {cart.quantity}
                       </TableCell>
                       <TableCell>
-                        {dayjs(p.createdAt).format("MMM DD, YYYY")}
+                        {cart.price * cart.quantity}
                       </TableCell>
                     </TableRowData>
                   ))
                 )
               )}
-						</TableBody>
-					</Table>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={productTotal}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-				</TableContainer>
-			</DashboardCard>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DashboardCard>
 
       <Dialog fullWidth maxWidth="xs" open={orderOpen} onClose={() => setOrderOpen(false)}>
         <DialogTitle>
@@ -316,8 +311,8 @@ const Dashboard = () => {
           </Button>
         </DialogContent>
       </Dialog>
-		</PageContainer>
-	);
+    </PageContainer>
+  );
 };
 
 export default Dashboard;
