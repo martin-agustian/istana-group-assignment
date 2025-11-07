@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  output   = "../src/app/generated/prisma"
 }
 
 datasource db {
@@ -26,7 +26,7 @@ model User {
 model Product {
   id        Int      @id @default(autoincrement())
   name      String
-  price     Float
+  price     Int
   stock     Int
   createdAt DateTime @default(now())
   orders    OrderItem[]
@@ -36,6 +36,7 @@ model Order {
   id        Int       @id @default(autoincrement())
   user      User      @relation(fields: [userId], references: [id])
   userId    Int
+  code      String   @unique
   createdAt DateTime  @default(now())
   items     OrderItem[]
 }
@@ -47,5 +48,5 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
   productId Int
   quantity  Int
-  priceAt   Float
+  priceAt   Int
 }

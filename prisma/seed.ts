@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
+import { faker } from '@faker-js/faker';
 
 async function main() {
   const hashed = await bcrypt.hash('password', 10);
@@ -24,13 +22,13 @@ async function main() {
   // generate 20 produk dummy
   const products = Array.from({ length: 20 }).map(() => ({
     name: faker.commerce.productName(),
-    price: parseFloat(faker.commerce.price({ min: 10000, max: 200000 })),
+    price: faker.number.int({ min: 10000, max: 200000 }),
     stock: faker.number.int({ min: 1, max: 100 }),
   }));
 
   await prisma.product.createMany({
     data: products,
-    skipDuplicates: true, // biar ga error kalau nama duplikat
+    skipDuplicates: true,
   });
 
   console.log('Seed finish.');
