@@ -23,7 +23,6 @@ export async function GET(req: Request) {
 			prisma.product.count({ where }),
 		]);
 
-
 		return NextResponse.json({
       products,
 			total,

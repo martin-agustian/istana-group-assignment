@@ -1,6 +1,5 @@
 "use client";
-import dayjs from "dayjs";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
 
@@ -11,14 +10,14 @@ import TableRowData from "@/components/table/TableRowData";
 
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from "@mui/material";
 
-import { ProductModel } from "@/types/model/Product";
+import { OrderModel } from "@/types/model/Order";
 import { showError } from "@/commons/error";
+import { formatNumber } from "@/commons/helper";
 
 const Order = () => {
-  const router = useRouter();
+  const { orderCode } = useParams();
 
-  const [orders, setOrders] = useState<ProductModel[]>([]);
-  const [orderTotal, setOrderTotal] = useState<number>(0);
+  const [order, setOrder] = useState<OrderModel>();
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -28,18 +27,12 @@ const Order = () => {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-
-      const query = new URLSearchParams({
-        page: (page + 1).toString(),
-        pageSize: rowsPerPage.toString(),
-      });
   
-      const response = await fetch(`/api/order?${query.toString()}`);
+      const response = await fetch(`/api/order/${orderCode}`);
       const data = await response.json();
 
       if (response.ok) {
-        setOrders(data.orders || []);
-        setOrderTotal(data.total);
+        setOrder(data);
       }
       else {
         throw data.error;
@@ -53,9 +46,9 @@ const Order = () => {
     }
   };
 
-	useEffect(() => {
-		fetchOrder();
-	}, [page]);
+  useEffect(() => {
+    fetchOrder();
+  }, [page]);
 
   const handleChangePage = (_: MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
@@ -68,41 +61,47 @@ const Order = () => {
 
   return (
     <PageContainer 
-      title={"Order History"} 
+      title={"Order Detail"} 
       description={"This is order page"}
     >
       <DashboardCard
-        title="Order History"
+        title={`Order Detail - ${orderCode}`}
       >
         <TableContainer component={Paper} elevation={9}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Order Code</TableCell>
-                <TableCell>Total Item</TableCell>
-                <TableCell>Created At</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Quantity</TableCell>
+                <TableCell>Price At</TableCell>
+                <TableCell>Subtotal</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableState colSpan={5}>Loading...</TableState>
               ) : (
-                orders.length === 0 ? (
+                order?.items.length === 0 ? (
                   <TableState colSpan={5}>Data not found</TableState>
                 ) : (
-                  orders.map((order: any) => (
+                  order?.items.map((item: any) => (
                     <TableRowData 
-                      key={order.id} 
-                      onClick={() => { router.push(`/order/${order.code}`); }}
+                      key={item.id} 
+                      onClick={() => {
+                        
+                      }}
                     >
                       <TableCell>
-                        {order.code}
+                        {item.product.name}
                       </TableCell>
                       <TableCell>
-                        {order.items.length}
+                        {item.quantity}
                       </TableCell>
                       <TableCell>
-                        {dayjs(order.createdAt).format("MMM DD, YYYY - HH:ss")}
+                        Rp. {formatNumber(item.priceAt)}
+                      </TableCell>
+                      <TableCell>
+                        Rp. {formatNumber(item.priceAt * item.quantity)}
                       </TableCell>
                     </TableRowData>
                   ))
@@ -110,16 +109,6 @@ const Order = () => {
               )}
             </TableBody>
           </Table>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={orderTotal}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </TableContainer>        
       </DashboardCard>
     </PageContainer>
