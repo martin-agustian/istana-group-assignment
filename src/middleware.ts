@@ -34,6 +34,6 @@ export async function middleware(req: NextRequest) {
 			* - service worker
 			* - well-known config
 		*/
-		'/((?!_next/static|_next/image|favicon.ico|public|images|firebase-messaging-sw.js|.well-known).*)',
+		'/((?!_next/static|_next/image|favicon.ico|images|firebase-messaging-sw.js|.well-known).*)',
 	],
 };
