@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
 				if (!isValid) throw new Error("Invalid password!");
 
 				return {
-					id: user.id.toString(),
+					id: user.id,
 					name: user.name,
 					email: user.email,
 				};
@@ -38,20 +38,16 @@ export const authOptions: NextAuthOptions = {
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
-				token.id = user.id;
+				token.id = user.id as number;
 				token.email = user.email;
 				token.name = user.name;
 			}
-			console.log(token, user, "JWT");
 			return token;
 		},
 		async session({ session, token }) {
 			if (session && session.user) {
-				// session.user.id = token.id as string;
-				// session.user.email = token.email as string;
-				// session.user.name = token.name as string;
+				session.user.id = token.id;
 			}
-			console.log(token, session, "Session");
 			return session;
 		},
 	},

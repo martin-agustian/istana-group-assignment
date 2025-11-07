@@ -9,8 +9,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getAuthorization } from "@/commons/helper";
 
+import { UserModel } from "@/types/model/User";
+
 export async function GET(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    const authorization = getAuthorization(req);
+    const sessionUser = (session?.user ?? authorization.user) as UserModel;
+		if (!sessionUser) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
     const { searchParams } = new URL(req.url);
 		const page = parseInt(searchParams.get("page") || "1", 10);
 		const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
@@ -23,9 +32,9 @@ export async function GET(req: Request) {
 
     const [orders, total] = await Promise.all([
       prisma.order.findMany({
-        where: { userId: 1 },
+        where: { userId: Number(sessionUser.id) },
         include: { items: { include: { product: true } } },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
 				skip: (page - 1) * pageSize,
 				take: pageSize,
       }),
@@ -48,7 +57,7 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     const authorization = getAuthorization(req);
-    const sessionUser = session?.user ?? authorization.user;
+    const sessionUser = (session?.user ?? authorization.user) as UserModel;
 		if (!sessionUser) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
@@ -67,7 +76,7 @@ export async function POST(req: Request) {
 
       const orderCreated = await prismaTx.order.create({
         data: { 
-          userId: 1,
+          userId: Number(sessionUser.id),
           code: nanoid(),
         },
       });
