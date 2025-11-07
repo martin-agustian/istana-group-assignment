@@ -261,7 +261,7 @@ const Dashboard = () => {
               textTransform: "uppercase"
             }}
             onClick={handleAddToCart}
-            disabled={!orderQuantity}
+            disabled={!orderQuantity || productSelected?.stock == 0}
           >
             Add to Cart
           </Button>
