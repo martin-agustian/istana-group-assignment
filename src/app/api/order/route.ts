@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 import z from "zod";
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
 
     const { items } = body;
 
-    const result = await prisma.$transaction(async (prismaTx) => {
+    const result = await prisma.$transaction(async (prismaTx: Prisma.TransactionClient) => {
       const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 10);
 
       const orderCreated = await prismaTx.order.create({
