@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: istana_group_assignment
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/istana_group_assignment?schema=public"
+      JWT_SECRET: "istana-group-assignment"
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    command: >
+      sh -c "npx prisma migrate deploy && node_modules/.bin/next start -p 3000"
+    # untuk development, ubah command ke "npm run dev"
+
+volumes:
+  db-data:

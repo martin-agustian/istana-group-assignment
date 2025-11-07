@@ -17,6 +17,24 @@
 2. email: budi@mailinator.com, password: password
 3. email: anton@mailinator.com, password: password
 
+
+---
+
+## 📂 API Structure
+
+```
+/api
+  /auth/[...nextauth]                                     → Authentication (login/logout)
+  /auth
+    POST   /login                                         → Login user via api with body { email: email, password: string }
+  /order
+    POST   /order                                         → Creates order with array body [{ productId: number, quantity: number }]
+    GET    /order                                         → Lists own order
+    GET    /order/[:orderCode]                            → Detail order
+  /product
+    GET    /product                                       → List product
+```
+
 ---
 
 ## 📂 FOLDER Structure
@@ -71,7 +89,7 @@ JWT_SECRET="your-super-secret-key"
 
 3. Migrate & seed database
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 npx prisma generate
 npx prisma db seed
 ```
