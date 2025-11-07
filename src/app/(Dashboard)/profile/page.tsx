@@ -28,10 +28,10 @@ const Profile = () => {
           />
           <Stack gap={2} sx={{ textAlign: { xs: "center", md: "left" } }}>
             <Typography variant="body1" sx={{ color: "primary.main", fontSize: "40px", fontWeight: "bold",  mt: 0.5 }}>
-              {session?.user.name}
+              {session?.user?.name}
             </Typography>
             <Typography variant="body1" sx={{ mt: 0.5 }}>
-              {session?.user.email}
+              {session?.user?.email}
             </Typography>
           </Stack>
         </Stack>

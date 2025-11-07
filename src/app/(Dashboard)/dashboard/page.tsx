@@ -21,6 +21,7 @@ import { ProductModel } from "@/types/model/Product";
 // import { getCaseCategoryLabel } from "@/commons/helper";
 import { showError } from "@/commons/error";
 import InputNumber from "@/components/form/InputNumber";
+import { formatNumber } from "@/commons/helper";
 // import { UserRole } from "@/commons/type";
 // import { UserRoleEnum } from "@/commons/enum";
 
@@ -129,13 +130,16 @@ const Dashboard = () => {
       existingItem.quantity += orderQuantity;
       if (existingItem.quantity > stock) existingItem.quantity = orderQuantity;
     } else {
-      cart.push({ ...productSelected, quantity: 1 });
+      cart.push({ ...productSelected, quantity: orderQuantity });
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
 
     setOrderOpen(false);
-    setLoadingSubmit(false); 
+    setLoadingSubmit(false);
+    setProductSelected(undefined); 
+    setOrderSubtotal(0);
+    setOrderQuantity(1);
 
     await Swal.fire({
       timer: 3000,
@@ -196,7 +200,7 @@ const Dashboard = () => {
                         {p.name}
                       </TableCell>
                       <TableCell>
-                        {p.price}
+                        Rp. {formatNumber(p.price)}
                       </TableCell>
                       <TableCell>
                         {p.stock}
@@ -293,7 +297,7 @@ const Dashboard = () => {
               </Typography>
               
               <Typography>
-                {orderSubtotal}
+                Rp. {formatNumber(orderSubtotal)}
               </Typography>
             </Stack>
           </Box>
