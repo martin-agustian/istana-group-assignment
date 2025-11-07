@@ -14,6 +14,7 @@ import InputNumber from "@/components/form/InputNumber";
 import { ProductModel } from "@/types/model/Product";
 import { AddOrderBody } from "@/types/request/Order";
 import { showError } from "@/commons/error";
+import { formatNumber } from "@/commons/helper";
 
 const Checkout = () => {
   const [productSelected, setProductSelected] = useState<ProductModel>();
@@ -39,21 +40,29 @@ const Checkout = () => {
     }
   }, [orderOpen, orderQuantity]);
 
-  const handleAddToCart = async () => {
+  const handleUpdateToCart = async () => {
+    if (orderQuantity === null) return;
+
     setLoadingSubmit(true); 
 
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const stock = productSelected?.stock ?? 0;
 
     const existingItem = cart.find((item: any) => item.id === productSelected?.id);
-    if (existingItem) {
-      existingItem.quantity += orderQuantity;
-      if (existingItem.quantity > stock) existingItem.quantity = orderQuantity;
-    } else {
-      cart.push({ ...productSelected, quantity: 1 });
+    if (!existingItem) {
+      setLoadingSubmit(false);
+      return; // Item not found, do nothing
     }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
+    
+    // Remove item if quantity is 0
+    if (orderQuantity <= 0) {
+      const updatedCart = cart.filter((item: any) => item.id !== productSelected?.id);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+    } else {
+      // Update quantity and respect stock limit
+      existingItem.quantity = Math.min(orderQuantity, stock);
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
 
     setOrderOpen(false);
     setLoadingSubmit(false); 
@@ -61,10 +70,12 @@ const Checkout = () => {
     await Swal.fire({
       timer: 3000,
       title: "Success!",
-      text: "Success add to cart",
+      text: "Success update shopping cart",
       icon: "success",
       showConfirmButton: false,
     });
+
+    window.location.reload();
   };
 
   const handleCheckout = async () => {
@@ -137,6 +148,7 @@ const Checkout = () => {
                       onClick={() => {
                         setProductSelected(cart);
                         setOrderSubtotal(cart.price);
+                        setOrderQuantity(cart.quantity);
                         setOrderOpen(true);
                       }}
                     >
@@ -150,7 +162,7 @@ const Checkout = () => {
                         {cart.quantity}
                       </TableCell>
                       <TableCell>
-                        {cart.price * cart.quantity}
+                        Rp. {formatNumber(cart.price * cart.quantity)}
                       </TableCell>
                     </TableRowData>
                   ))
@@ -248,7 +260,7 @@ const Checkout = () => {
               </Typography>
               
               <Typography>
-                {orderSubtotal}
+                Rp. {formatNumber(orderSubtotal)}
               </Typography>
             </Stack>
           </Box>
@@ -264,10 +276,10 @@ const Checkout = () => {
               fontWeight: "bold",
               textTransform: "uppercase"
             }}
-            onClick={handleAddToCart}
-            disabled={!orderQuantity}
+            onClick={handleUpdateToCart}
+            disabled={orderQuantity == null}
           >
-            Add to Cart
+            Update Quantity
           </Button>
         </DialogContent>
       </Dialog>

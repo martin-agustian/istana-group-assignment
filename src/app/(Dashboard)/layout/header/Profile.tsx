@@ -13,7 +13,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { IconUser } from "@tabler/icons-react";
+import { IconShoppingBag, IconUser } from "@tabler/icons-react";
 
 const Profile = () => {
   const router = useRouter();
@@ -86,7 +86,7 @@ const Profile = () => {
         </MenuItem>
         <MenuItem onClick={() => { router.push("/order"); handleClose(); }}>
           <ListItemIcon>
-            <IconUser width={20} />
+            <IconShoppingBag width={20} />
           </ListItemIcon>
           <ListItemText>My Order</ListItemText>
         </MenuItem>
@@ -95,7 +95,10 @@ const Profile = () => {
             variant="outlined"
             color="primary"
             fullWidth
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => {
+              localStorage.removeItem("cart");
+              signOut({ callbackUrl: "/login" });
+            }}
           >
             Logout
           </Button>

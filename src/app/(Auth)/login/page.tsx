@@ -2,7 +2,6 @@
 import Swal from "sweetalert2";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +18,6 @@ import AuthLogin from "./components/AuthLogin";
 import { showError } from "@/commons/error";
 
 const Login = () => {
-	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-
 	const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
 	const {
@@ -29,10 +25,6 @@ const Login = () => {
 		handleSubmit: onSubmitLogin,
 		formState: { errors: loginErrors },
 	} = useForm<LoginSchema>({
-		defaultValues: {
-			email: "budi@mailinator.com",
-			password: "password"
-		},
 		resolver: zodResolver(loginSchema),
 		mode: "onChange",
 	});
@@ -56,7 +48,7 @@ const Login = () => {
 					showConfirmButton: false,
 				});
 								
-				window.location.href = callbackUrl;
+				window.location.href = "/dashboard";
 			} else {
 				throw response?.error;
 			}

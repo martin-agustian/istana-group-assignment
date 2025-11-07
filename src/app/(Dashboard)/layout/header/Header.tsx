@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent } from "react";
 import PropTypes from "prop-types";
 
 import { Box, AppBar, Toolbar, styled, Stack, IconButton, Badge } from "@mui/material";
@@ -29,21 +29,6 @@ const Header = ({ toggleMobileSidebar }: ItemType) => {
 		color: theme.palette.text.secondary,
 	}));
 
-	const [cartCount, setCartCount] = useState<number>(0);
-
-  useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-
-    if (storedCart) {
-      try {
-        const items = JSON.parse(storedCart);
-        setCartCount(items.length);
-      } catch (err) {
-        console.error("Failed parse cart:", err);
-      }
-    }
-  }, []);
-
 	return (
 		<AppBarStyled position="sticky" color="default">
 			<ToolbarStyled>
@@ -66,9 +51,7 @@ const Header = ({ toggleMobileSidebar }: ItemType) => {
 
 				<Link href="/checkout">
 					<IconButton size="large" color="inherit" aria-haspopup="true">
-						<Badge badgeContent={cartCount} color="primary">
-							<IconShoppingCart size="21" stroke="1.5" />
-						</Badge>
+						<IconShoppingCart size="21" stroke="1.5" />
 					</IconButton>
 				</Link>
 
