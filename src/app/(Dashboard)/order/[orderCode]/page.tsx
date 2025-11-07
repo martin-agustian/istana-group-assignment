@@ -1,28 +1,26 @@
 "use client";
-import { useParams } from "next/navigation";
-
-import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
 import DashboardCard from "@/app/(Dashboard)/components/card/DashboardCard";
 import TableState from "@/components/table/TableState";
 import TableRowData from "@/components/table/TableRowData";
 
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from "@mui/material";
+import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 
 import { OrderModel } from "@/types/model/Order";
 import { showError } from "@/commons/error";
 import { formatNumber } from "@/commons/helper";
+import { IconChevronLeft } from "@tabler/icons-react";
 
 const Order = () => {
+  const router = useRouter();
+
   const { orderCode } = useParams();
 
   const [order, setOrder] = useState<OrderModel>();
-
   const [loading, setLoading] = useState<boolean>(false);
-
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
 
   const fetchOrder = async () => {
     try {
@@ -48,22 +46,27 @@ const Order = () => {
 
   useEffect(() => {
     fetchOrder();
-  }, [page]);
-
-  const handleChangePage = (_: MouseEvent<HTMLButtonElement> | null, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  }, []);
 
   return (
     <PageContainer 
       title={"Order Detail"} 
       description={"This is order page"}
     >
+      <Button
+        color="primary"
+        variant="text"
+        size="medium"
+        sx={{
+          fontWeight: "bold",
+          textTransform: "uppercase",
+          marginBottom: 2,
+        }}
+        onClick={() => { router.replace('/order') }}
+      >
+        <IconChevronLeft size="18" /> Back
+      </Button>
+
       <DashboardCard
         title={`Order Detail - ${orderCode}`}
       >
@@ -81,16 +84,11 @@ const Order = () => {
               {loading ? (
                 <TableState colSpan={5}>Loading...</TableState>
               ) : (
-                order?.items.length === 0 ? (
+                (!order || order?.items.length === 0) ? (
                   <TableState colSpan={5}>Data not found</TableState>
                 ) : (
                   order?.items.map((item: any) => (
-                    <TableRowData 
-                      key={item.id} 
-                      onClick={() => {
-                        
-                      }}
-                    >
+                    <TableRowData key={item.id} sx={{ ":hover": "none", cursor: "default" }}>
                       <TableCell>
                         {item.product.name}
                       </TableCell>

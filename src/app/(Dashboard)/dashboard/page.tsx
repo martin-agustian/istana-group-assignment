@@ -1,33 +1,22 @@
 "use client";
-// import dayjs from "dayjs";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
 
-import Link from "next/link";
 import PageContainer from "@/app/(Dashboard)/components/container/PageContainer";
 import DashboardCard from "@/app/(Dashboard)/components/card/DashboardCard";
 import TableState from "@/components/table/TableState";
 import TableRowData from "@/components/table/TableRowData";
-// import DashboardCardTitleNode, { FilterSchema } from "./components/DashboardCardTitleNode";
 
 import { Box, Button, Dialog, DialogContent, DialogTitle, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from "@mui/material";
+import InputNumber from "@/components/form/InputNumber";
 
 import { ProductModel } from "@/types/model/Product";
-// import { getCaseCategoryLabel } from "@/commons/helper";
 import { showError } from "@/commons/error";
-import InputNumber from "@/components/form/InputNumber";
 import { formatNumber } from "@/commons/helper";
-// import { UserRole } from "@/commons/type";
-// import { UserRoleEnum } from "@/commons/enum";
 
 const Dashboard = () => {
-  const { data: session } = useSession();
-
 	const [products, setProducts] = useState<ProductModel[]>([]);
   const [productTotal, setProductTotal] = useState<number>(0);
 
@@ -40,29 +29,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
-  const [openFilter, setOpenFilter] = useState<boolean>(false);
-
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
-  // const [filter, setFilter] = useState<FilterSchema>();
-  
-  const router = useRouter();
-
-  // const {
-  //   watch: watchFilter,
-  //   getValues: getValueFilter,
-  //   setValue: setValueFilter,
-  //   control: controlFilter,
-  //   register: registerFilter,
-  //   handleSubmit: onSubmitFilter,
-  // } = useForm<FilterSchema>({
-  //   defaultValues: {
-  //     title: "",
-  //     category: "",
-  //     status: [],
-  //     sortBy: "",
-  //   },
-  // });
 
   const fetchProduct = async () => {
     try {
@@ -95,7 +63,6 @@ const Dashboard = () => {
 	useEffect(() => {
 		fetchProduct();
 	}, [page]);
-  // }, [filter, page]);
 
   useEffect(() => {
     if (orderOpen && productSelected) {
@@ -112,12 +79,6 @@ const Dashboard = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  // const handleSubmitFilter = (data: FilterSchema) => {
-  //   setOpenFilter(false);
-  //   setFilter(data);
-  //   setPage(0);
-  // }
 
   const handleAddToCart = async () => {
     setLoadingSubmit(true); 
@@ -155,21 +116,7 @@ const Dashboard = () => {
       title={"All Product"} 
       description={"This is all product page"}
     >
-			<DashboardCard
-        title="All Product" 
-        // titleNode={
-        //   <DashboardCardTitleNode 
-        //     title={"All Product"}
-        //     openFilter={openFilter}
-        //     setOpenFilter={setOpenFilter}
-        //     handleCloseFilter={() => setOpenFilter(false)}
-        //     registerFilter={registerFilter}
-        //     controlFilter={controlFilter}
-        //     onSubmitFilter={onSubmitFilter}
-        //     handleSubmitFilter={handleSubmitFilter}
-        //   />
-        // }
-      >
+			<DashboardCard title="All Product">
 				<TableContainer component={Paper} elevation={9}>
 					<Table>
 						<TableHead>
